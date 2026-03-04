@@ -5,19 +5,21 @@ using System.Text;
 
 public class RabbitConsumerService : BackgroundService
 {
+    private readonly IConfiguration _config;
     private readonly IConnection _connection;
     private IChannel? _channel;
 
-    public RabbitConsumerService(IConnection connection)
+    public RabbitConsumerService(IConfiguration config, IConnection connection)
     {
+        _config = config;
         _connection = connection;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        const string exchangeName = "Test-Exchange-2";
-        const string queueName = "Test-Queue-2.1a";
-        const string exchangeType = "fanout"; 
+        string? exchangeName = _config.GetSection("Rabbit:Exchanges:0:Name").Value;
+        string? queueName = _config.GetSection("Rabbit:Exchanges:0:Queues:0").Value;
+        string exchangeType = "fanout"; 
 
         _channel = await _connection.CreateChannelAsync(cancellationToken: stoppingToken);
 
@@ -48,7 +50,7 @@ public class RabbitConsumerService : BackgroundService
             cancellationToken: stoppingToken
         );
 
-        var consumer = new AsyncEventingBasicConsumer(_channel);
+        AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
         consumer.ReceivedAsync += async (model, ea) =>
         {
             var body = ea.Body.ToArray();

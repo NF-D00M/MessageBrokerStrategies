@@ -6,11 +6,11 @@ Password: guest
 
 # RabbitMessageBroker
 
-This project demonstrates how to integrate RabbitMQ as a message broker within a .NET 9 application. It covers installation, configuration of exchanges and queues, and testing message publishing via a dedicated endpoint.
+This project demonstrates how to integrate RabbitMQ as a message broker within a .NET 9 application. It covers configuration of exchanges and queues, and testing message publishing via a dedicated endpoint.
 
 ## Configuring Exchanges and Queues
 
-To add exchanges and queues, update your application configuration (e.g., `appsettings.json`):
+To add exchanges and queues, update the application configuration (e.g., `appsettings.json`):
 
 ## Testing Message Publishing
 

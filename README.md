@@ -63,5 +63,3 @@ To use RabbitMQ in this project:
    - When you start RabbitMessageConsumer, notice that messages with higher priority are received first.
 
 ---
-
-Explore the repository to review implementation details, performance benchmarks, and integration examples for both RabbitMQ and Kafka within .NET 9.

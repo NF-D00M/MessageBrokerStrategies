@@ -32,13 +32,15 @@ public class RabbitConsumerService : BackgroundService
             cancellationToken: stoppingToken
         );
 
+        Dictionary<string, object> args = new Dictionary<string, object> { { "x-max-priority", 10 } };
+
         // Declare the queue
         await _channel.QueueDeclareAsync(
             queue: queueName,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            arguments: null,
+            arguments: args, // <--- Pass the dictionary here
             cancellationToken: stoppingToken
         );
 
@@ -50,12 +52,18 @@ public class RabbitConsumerService : BackgroundService
             cancellationToken: stoppingToken
         );
 
+        await _channel.BasicQosAsync(0, 1, false, stoppingToken);
+
         AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
         consumer.ReceivedAsync += async (model, ea) =>
         {
-            var body = ea.Body.ToArray();
-            var message = Encoding.UTF8.GetString(body);
-            Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} | {AppDomain.CurrentDomain.FriendlyName} | {nameof(RabbitConsumerService)} | ReceivedAsync : Exchange: {ea.Exchange}, Queue: {queueName}, Message: {message}");
+            byte[] body = ea.Body.ToArray();
+            string message = Encoding.UTF8.GetString(body);
+            Console.WriteLine($"" +
+                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} | " +
+                $"{AppDomain.CurrentDomain.FriendlyName} | " +
+                $"{nameof(RabbitConsumerService)} | " +
+                $"ReceivedAsync : Exchange: {ea.Exchange}, Queue: {queueName}, Message: {message}, Priority {ea.BasicProperties.Priority}");
             await Task.CompletedTask;
         };
 

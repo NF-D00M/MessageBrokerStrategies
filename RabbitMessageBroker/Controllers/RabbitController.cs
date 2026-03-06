@@ -7,6 +7,7 @@ namespace RabbitMessageBroker.Controllers
     public class PublishRequest
     {
         public string Message { get; set; }
+        public byte Priority { get; set; }
     }
 
     [ApiController]
@@ -30,8 +31,8 @@ namespace RabbitMessageBroker.Controllers
 
             if (exchange != null)
             {
-                await _broker.PublishAsync(exchange.Name, message.Message); 
-                return Ok($"Sent to Rabbit: {message.Message}");
+                await _broker.PublishAsync(exchange.Name, message.Priority, message.Message);
+                return Ok($"Sent to Rabbit with priority {message.Priority}: {message.Message}");
             }
 
             return BadRequest("Exchange not found");

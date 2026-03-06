@@ -16,7 +16,7 @@ public class RabbitBroker : IMessageBroker
         _connection = connection;
     }
 
-    public async Task PublishAsync<T>(string exchangeName, T message)
+    public async Task PublishAsync<T>(string exchangeName, byte priority, T message)
     {
         using IChannel channel = await _connection.CreateChannelAsync();
 
@@ -24,15 +24,24 @@ public class RabbitBroker : IMessageBroker
             exchange: exchangeName,
             type: "fanout", 
             durable: false,
-            autoDelete: false);
+            autoDelete: false
+        );
 
         byte[] body = message is string str
             ? Encoding.UTF8.GetBytes(str)
             : JsonSerializer.SerializeToUtf8Bytes(message);
 
+        BasicProperties properties = new BasicProperties
+        {
+            Priority = priority,
+            Persistent = true 
+        };
+
         await channel.BasicPublishAsync(
             exchange: exchangeName,
-            routingKey: "", 
+            routingKey: string.Empty,
+            mandatory: false,
+            basicProperties: properties,
             body: body
         );
     }

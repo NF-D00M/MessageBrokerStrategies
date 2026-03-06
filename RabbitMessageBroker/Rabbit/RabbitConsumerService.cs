@@ -24,44 +24,48 @@ namespace RabbitMessageBroker.RabbitMQ
             List<Exchange>? exchanges = _config.GetSection("Rabbit:Exchanges").Get<List<Exchange>>();
             foreach (Exchange exchange in exchanges)
             {
-                // Exchange
                 await _channel.ExchangeDeclareAsync(
                     exchange: exchange.Name,
-                    type: "fanout",
+                    type: ExchangeType.Fanout,
                     durable: false,
                     autoDelete: false,
                     cancellationToken: stoppingToken
                 );
-                
+
                 foreach (string queue in exchange.Queues)
                 {
-                    // Queue
+
+                    Dictionary<string, object> args = new Dictionary<string, object> { { "x-max-priority", 10 } };
+
                     await _channel.QueueDeclareAsync(
                         queue: queue,
                         durable: false,
                         exclusive: false,
                         autoDelete: false,
-                        arguments: null,
+                        arguments: args, // Add the args
                         cancellationToken: stoppingToken
                     );
 
-                    // Bind the queue to the exchange
                     await _channel.QueueBindAsync(
                         queue: queue,
                         exchange: exchange.Name,
-                        routingKey: queue,
+                        routingKey: "", 
                         cancellationToken: stoppingToken
                     );
 
-                    // Consumer for each queue
-                    AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
+                    // 2. Add QoS to ensure priority 
+                    await _channel.BasicQosAsync(0, 1, false, stoppingToken);
 
+                    AsyncEventingBasicConsumer consumer = new AsyncEventingBasicConsumer(_channel);
                     consumer.ReceivedAsync += async (model, ea) =>
                     {
                         byte[] body = ea.Body.ToArray();
                         string message = Encoding.UTF8.GetString(body);
-
-                        Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} | {AppDomain.CurrentDomain.FriendlyName} | {nameof(RabbitConsumerService)} | ReceivedAsync : Exchange: {ea.Exchange}, Queue: {queue}, Message: {message}");
+                        Console.WriteLine($"" +
+                            $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} | " +
+                            $"{AppDomain.CurrentDomain.FriendlyName} | " +
+                            $"{nameof(RabbitConsumerService)} | " +
+                            $"ReceivedAsync : Exchange: {ea.Exchange}, Queue: {queue}, Message: {message}, Priority {ea.BasicProperties.Priority}");
                         await Task.CompletedTask;
                     };
 
@@ -73,7 +77,12 @@ namespace RabbitMessageBroker.RabbitMQ
                     );
                 }
             }
+
+            // 3. KEEP THE SERVICE ALIVE
+            // Without this, the method ends and the consumer is killed.
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
+
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {

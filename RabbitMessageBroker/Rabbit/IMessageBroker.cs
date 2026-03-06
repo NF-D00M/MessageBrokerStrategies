@@ -5,6 +5,6 @@ namespace RabbitMessageBroker.RabbitMQ;
 
 public interface IMessageBroker
 {
-    Task PublishAsync<T>(string exchangeName, T message);
+    Task PublishAsync<T>(string exchangeName, byte priority, T message);
     Task SubscribeAsync<T>(string destination, Func<T, BasicDeliverEventArgs, Task> handler);
 }

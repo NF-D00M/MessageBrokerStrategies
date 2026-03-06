@@ -81,6 +81,6 @@ To use RabbitMQ in this project:
        "priority": 10
      }
      ```
-   - When you start RabbitMessageConsumer, notice that messages with higher priority are received first.
+   - When RabbitMessageConsumer is started, notice that messages with higher priority are received first.
 
 ---

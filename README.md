@@ -36,6 +36,13 @@ This project is designed to evaluate and compare the performance of two popular 
 
 ## RabbitMQ Usage Guide
 
+### Prerequisites 
+
+Rabbit is running. Environment is Development
+- URL: http://127.0.0.1:15672/
+- User: guest
+- Password: guest
+
 To use RabbitMQ in this project:
 
 1. **Start RabbitMessageBroker first.**
@@ -60,6 +67,20 @@ To use RabbitMQ in this project:
 
 5. **Message Priority Behavior:**
    - Try publishing messages while RabbitMessageConsumer is down.
+   - - Example payload 1:
+     ```json
+     {
+       "message": "This message is from Postman",
+       "priority": 5
+     }
+     ```
+   - - Example payload 2:
+     ```json
+     {
+       "message": "This message is from Postman",
+       "priority": 10
+     }
+     ```
    - When you start RabbitMessageConsumer, notice that messages with higher priority are received first.
 
 ---

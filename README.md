@@ -45,16 +45,19 @@ Rabbit is running. Environment is Development
 
 To use RabbitMQ in this project:
 
-1. **Start RabbitMessageBroker first.**
+1. **Configure Exchanges in RabbitMessageBroker `appsettings.json`.**
+   - Define exchanges in Rabbit.Exchanges.Name.
+
+2. **Start RabbitMessageBroker first.**
    - This service must be running before any consumers connect.
 
-2. **Configure exchanges and queues in `appsettings.json`.**
-   - Define your exchanges and queues in the configuration file for RabbitMessageBroker.
+3. **Configure Queues in RabbitMessageConsumer `appsettings.json`.**
+   - Define queues in Rabbit.Exchanges.Queue.Name.
 
-3. **Run RabbitMessageConsumer.**
-   - The consumer connects to a queue. Ensure the queue exists in RabbitMessageBroker.
+4. **Run RabbitMessageConsumer.**
+   - The consumer binds the queue to an exchange, if the queue doesn't exist the queue is created.
 
-4. **Test publishing messages to an exchange:**
+5. **Test publishing messages to an exchange:**
    - Example endpoint:
      - `https://localhost:7277/rabbit/publish/exchange/Test-Exchange-1`
    - Example payload:
@@ -81,6 +84,6 @@ To use RabbitMQ in this project:
        "priority": 10
      }
      ```
-   - When RabbitMessageConsumer is started, notice that messages with higher priority are received first.
+   - When RabbitMessageConsumer is started, messages with higher priority are received first.
 
 ---

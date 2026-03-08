@@ -16,3 +16,9 @@ Listen to Topic : C:\kafka_2.13-4.2.0\bin\windows\kafka-console-consumer.bat --t
 Send Message to Topic : C:\kafka_2.13-4.2.0\bin\windows\kafka-console-producer.bat --topic test-topic --bootstrap-server localhost:9092
 
 Delete Topic : C:\kafka_2.13-4.2.0\bin\windows\kafka-topics.bat --delete --topic test-topic --bootstrap-server localhost:9092
+
+View Tiopic Logs : 
+C:\kafka_2.13-4.2.0\bin\windows\kafka-dump-log.bat `
+  --files C:\kafka_2.13-4.2.0\data\test-topic-0\00000000000000000000.log `
+  --print-data-log `
+  --deep-iteration

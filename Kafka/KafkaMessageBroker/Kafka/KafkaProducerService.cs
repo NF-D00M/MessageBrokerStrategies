@@ -12,7 +12,6 @@ namespace KafkaMessageBroker.Kafka
             ProducerConfig config = new ProducerConfig
             {
                 BootstrapServers = _config["Kafka:BootstrapServers"],
-                // Best practice for reliability
                 Acks = Acks.All,
                 EnableIdempotence = true
             };

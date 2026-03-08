@@ -24,6 +24,7 @@ namespace KafkaMessageBroker.Kafka
                 {
                 new TopicSpecification { Name = topicName, NumPartitions = partitions, ReplicationFactor = 1 }
                 });
+
                 Console.WriteLine($"Topic '{topicName}' created.");
             }
             catch (CreateTopicsException e) when (e.Results[0].Error.Code == ErrorCode.TopicAlreadyExists)

@@ -52,21 +52,24 @@ Choose RabbitMQ for traditional messaging scenarios and complex routing. Choose 
 
 ---
 
-## When to Prefer RabbitMQ or Kafka
+## Feature Comparison: Kafka vs RabbitMQ (Pub/Sub)
 
-**RabbitMQ** is ideal when you need:
-- Flexible routing and message patterns (direct, topic, fanout, headers)
-- Reliable transactional messaging and strong delivery guarantees
-- Simple integration and management with a user-friendly UI
-- Use cases like task queues, transactional workflows, or RPC
-
-**Kafka** is preferred when you need:
-- High throughput and scalability for large data streams
-- Event sourcing, log aggregation, or real-time analytics
-- Built-in message replay and long-term storage
-- Distributed, fault-tolerant architecture for parallel processing
-
-Choose RabbitMQ for traditional messaging scenarios and complex routing. Choose Kafka for scalable event streaming and analytics.
+| Feature                | RabbitMQ (Pub/Sub)                                     | Kafka (Pub/Sub)                                      |
+|------------------------|--------------------------------------------------------|------------------------------------------------------|
+| Protocol               | AMQP                                                   | Kafka TCP protocol                                   |
+| Message Durability     | Persistent queues, configurable per message/queue      | Always persistent, log-based storage                 |
+| Ordering Guarantees    | Per queue, can be affected by consumer concurrency     | Per partition, strict ordering within partition      |
+| Scalability            | Scales with exchanges/queues, clustering supported     | Scales with partitions, distributed by design        |
+| Consumer Model         | Push-based, consumers receive messages as delivered    | Pull-based, consumers fetch messages on demand       |
+| Replay/Recovery        | Limited, requires dead-letter queue or manual handling | Built-in, consumers can replay from any offset       |
+| Message Acknowledgment | Manual or automatic, supports retries                  | Offset commit, manual or automatic                   |
+| Routing Flexibility    | Exchanges (direct, topic, fanout, headers)             | Topics only, no built-in routing                     |
+| Management UI          | Web-based management interface                         | No official UI, third-party tools (e.g., Confluent)  |
+| Transaction Atomicity  | Yes, supports transactions                             | Limited, idempotency via producer/consumer configs   |
+| Delivery Guarantees    | At-most-once, at-least-once, exactly-once (with tx)    | At-most-once, at-least-once, exactly-once (with tx) |
+| Consumer Groups        | Not native, can be emulated with queues                | Native, enables parallel processing                  |
+| Message TTL            | Supported                                              | Not natively supported                               |
+| Use Cases              | Task queues, transactional messaging, RPC              | Event streaming, log aggregation, analytics          |
 
 ---
 
@@ -131,7 +134,7 @@ To use RabbitMQ in this project:
 
 ### Prerequisites
 
-Kafka is a standalone product that runs on the Java Virtual Machine (JVM). Before using Kafka in this project, you must start a Kafka broker outside the .NET solution.
+Kafka is a product that runs on the Java Virtual Machine (JVM). Before using Kafka in this project, start a Kafka broker outside the .NET solution.
 
 **Kafka Installation:**
 - Download and install Apache Kafka from [https://kafka.apache.org/downloads](https://kafka.apache.org/downloads)
@@ -140,13 +143,13 @@ Kafka is a standalone product that runs on the Java Virtual Machine (JVM). Befor
 ```
 C:\kafka_2.13-4.2.0\bin\windows\kafka-server-start.bat C:\kafka_2.13-4.2.0\config\server.properties
 ```
-Ensure you have Java installed and the Kafka distribution extracted to the specified path.
+Ensure Java is installed and the Kafka distribution extracted to the specified path.
 
 ---
 
 ### Setting Topics and Partitions
 
-Kafka organizes messages into **topics**, which are further divided into **partitions**. Topics allow you to categorize messages, while partitions enable parallelism and scalability. More partitions allow higher throughput and distributed processing, but require careful management of ordering and consumer load.
+Kafka organises messages into **topics**, which are further divided into **partitions**. Topics allow categorise messages, while partitions enable parallelism and scalability. More partitions allow higher throughput and distributed processing, but require careful management of ordering and consumer load.
 
 **In the KafkaMessageBroker app:**
 - The topic name and partition count are configured in `appsettings.json`.
@@ -156,52 +159,39 @@ Kafka organizes messages into **topics**, which are further divided into **parti
 
 ### Subscribing to a Topic in KafkaMessageConsumer
 
-The `KafkaMessageConsumer` subscribes to a topic specified in its configuration. Subscription is handled in code via:
-```
-consumer.Subscribe(_config.GetSection("Kafka:Topic").Value);
-```
-**Key configuration options:**
+The `KafkaMessageConsumer` subscribes to a topic specified in its configuration. Subscription is handled in  `appsettings.json`.
+
+**Kafka Topic Options:**
 - **AutoOffsetReset**: Determines where the consumer starts reading if no offset is present.  
   - `Earliest`: Reads all available messages from the beginning.
   - `Latest`: Reads only new messages arriving after subscription.
-- **GroupId**: Consumers with the same group ID share the workload for a topic. Each message is delivered to one consumer in the group. Changing the group ID will cause the consumer to start from the offset defined by `AutoOffsetReset`.
-- **Topic**: Must match the topic created in KafkaMessageBroker and set in `appsettings.json`.
-
-**Caveats:**
-- If `AutoOffsetReset` is set to `Earliest`, the consumer will process all messages in the topic from the beginning if no prior offset exists for the group.
-- If `EnableAutoCommit` is true, offsets are committed automatically, which can affect message replay and recovery.
-- Changing the `GroupId` or subscribing to a new topic will reset the offset behavior according to `AutoOffsetReset`.
+- **GroupId**: Consumers with the same group ID share the workload for a topic (load balancing). Each message is delivered to one consumer in the group. Changing the group ID will cause the consumer to start from the offset defined by `AutoOffsetReset`.
+- **Topic**: Must match the topic created in KafkaMessageBroker and is set in `appsettings.json`.
+- **EnableAutoCommit** is true, offsets are committed automatically, which can affect message replay and recovery.
 - Ensure the topic exists and matches the configuration, otherwise the consumer will fail to subscribe.
 
 ---
 
 ### Example Workflow
 
-1. **Start Kafka broker** as described above.
+1. **Start Kafka broker**.
 2. **Configure topic and partitions** in KafkaMessageBroker `appsettings.json`.
 3. **Run KafkaMessageBroker** to create the topic.
 4. **Configure topic and group ID** in KafkaMessageConsumer `appsettings.json`.
 5. **Run KafkaMessageConsumer** to subscribe and process messages.
-
+6. **Test publishing messages to an exchange:**
+   - Example endpoint:
+   - `https://localhost:7065/kafka/publish/topic/test-topic?key=order-101`
+   - Example payload:
+     ```json
+     {
+      "orderId": "ORD-101",
+      "customer": "Galej Test",
+      "items": ["Kafka Guide", "C# Reference"],
+      "total": 45.99,
+      "status": "Completed"
+     }
+     ```
 ---
 
-## Feature Comparison: Kafka vs RabbitMQ (Pub/Sub)
 
-| Feature                | RabbitMQ (Pub/Sub)                                  | Kafka (Pub/Sub)                                      |
-|------------------------|-----------------------------------------------------|------------------------------------------------------|
-| Protocol               | AMQP                                                | Kafka TCP protocol                                   |
-| Message Durability     | Persistent queues, configurable per message/queue   | Always persistent, log-based storage                 |
-| Ordering Guarantees    | Per queue, can be affected by consumer concurrency  | Per partition, strict ordering within partition      |
-| Scalability            | Scales with exchanges/queues, clustering supported  | Scales with partitions, distributed by design        |
-| Consumer Model         | Push-based, consumers receive messages as delivered | Pull-based, consumers fetch messages on demand       |
-| Replay/Recovery        | Limited, requires dead-letter or manual handling    | Built-in, consumers can replay from any offset       |
-| Message Acknowledgment | Manual or automatic, supports retries               | Offset commit, manual or automatic                   |
-| Routing Flexibility    | Exchanges (direct, topic, fanout, headers)          | Topics only, no built-in routing                     |
-| Management UI          | Web-based management interface                      | No official UI, third-party tools (e.g., Confluent)  |
-| Transaction Support    | Yes, supports transactions                          | Limited, idempotency via producer/consumer configs   |
-| Delivery Guarantees    | At-most-once, at-least-once, exactly-once (with tx) | At-most-once, at-least-once, exactly-once (with tx) |
-| Consumer Groups        | Not native, can be emulated with queues             | Native, enables parallel processing                  |
-| Message TTL            | Supported                                           | Not natively supported                               |
-| Use Cases              | Task queues, transactional messaging, RPC           | Event streaming, log aggregation, analytics          |
-
----

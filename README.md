@@ -71,24 +71,24 @@ Choose RabbitMQ for traditional messaging scenarios and complex routing. Choose 
 
 ---
 
-## Feature Comparison: Kafka vs RabbitMQ (Pub/Sub)
+## Feature Comparison: RabbitMQ vs Kafka vs AWS SNS/SQS (Pub/Sub)
 
-| Feature                | RabbitMQ (Pub/Sub)                                     | Kafka (Pub/Sub)                                      |
-|------------------------|--------------------------------------------------------|------------------------------------------------------|
-| Protocol               | AMQP                                                   | Kafka TCP protocol                                   |
-| Message Durability     | Persistent queues, configurable per message/queue      | Always persistent, log-based storage                 |
-| Ordering Guarantees    | Per queue, can be affected by consumer concurrency     | Per partition, strict ordering within partition      |
-| Scalability            | Scales with exchanges/queues, clustering supported     | Scales with partitions, distributed by design        |
-| Consumer Model         | Push-based, consumers receive messages as delivered    | Pull-based, consumers fetch messages on demand       |
-| Replay/Recovery        | Limited, requires dead-letter queue or manual handling | Built-in, consumers can replay from any offset       |
-| Message Acknowledgment | Manual or automatic, supports retries                  | Offset commit, manual or automatic                   |
-| Routing Flexibility    | Exchanges (direct, topic, fanout, headers)             | Topics only, no built-in routing                     |
-| Management UI          | Web-based management interface                         | No official UI, third-party tools (e.g., Confluent)  |
-| Transaction Atomicity  | Yes, supports transactions                             | Limited, idempotency via producer/consumer configs   |
-| Delivery Guarantees    | At-most-once, at-least-once, exactly-once (with tx)    | At-most-once, at-least-once, exactly-once (with tx) |
-| Consumer Groups        | Not native, can be emulated with queues                | Native, enables parallel processing                  |
-| Message TTL            | Supported                                              | Not natively supported                               |
-| Use Cases              | Task queues, transactional messaging, RPC              | Event streaming, log aggregation, analytics          |
+| Feature                | RabbitMQ (Pub/Sub)                                     | Kafka (Pub/Sub)                                      | AWS SNS/SQS (Pub/Sub/Queue)                         |
+|------------------------|--------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|
+| Protocol               | AMQP                                                   | Kafka TCP protocol                                   | HTTPS (SNS/SQS APIs), AWS SDKs                      |
+| Message Durability     | Persistent queues, configurable per message/queue      | Always persistent, log-based storage                 | SQS: Always persistent, SNS: configurable            |
+| Ordering Guarantees    | Per queue, can be affected by consumer concurrency     | Per partition, strict ordering within partition      | SQS: FIFO queues for strict ordering, SNS: best effort |
+| Scalability            | Scales with exchanges/queues, clustering supported     | Scales with partitions, distributed by design        | Fully managed, auto-scaling, unlimited throughput    |
+| Consumer Model         | Push-based, consumers receive messages as delivered    | Pull-based, consumers fetch messages on demand       | SQS: Poll-based, SNS: Push-based to endpoints/queues |
+| Replay/Recovery        | Limited, requires dead-letter queue or manual handling | Built-in, consumers can replay from any offset       | SQS: Dead-letter queues, SNS: no replay              |
+| Message Acknowledgment | Manual or automatic, supports retries                  | Offset commit, manual or automatic                   | SQS: Automatic, visibility timeout, retries          |
+| Routing Flexibility    | Exchanges (direct, topic, fanout, headers)             | Topics only, no built-in routing                     | SNS: Topic-based pub/sub, SQS: queue-based          |
+| Management UI          | Web-based management interface                         | No official UI, third-party tools (e.g., Confluent)  | AWS Console, CLI, SDKs                              |
+| Transaction Atomicity  | Yes, supports transactions                             | Limited, idempotency via producer/consumer configs   | SQS: Limited, FIFO queues support exactly-once       |
+| Delivery Guarantees    | At-most-once, at-least-once, exactly-once (with tx)    | At-most-once, at-least-once, exactly-once (with tx) | SQS: At-least-once, FIFO: exactly-once, SNS: best effort |
+| Consumer Groups        | Not native, can be emulated with queues                | Native, enables parallel processing                  | SQS: Not native, can be emulated with multiple queues|
+| Message TTL            | Supported                                              | Not natively supported                               | SQS: Supported, SNS: Not supported                   |
+| Use Cases              | Task queues, transactional messaging, RPC              | Event streaming, log aggregation, analytics          | Cloud-native, serverless, decoupling, fanout, integration |
 
 ---
 

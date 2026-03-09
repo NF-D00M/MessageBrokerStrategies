@@ -1,71 +1,72 @@
 ﻿using Confluent.Kafka;
 using System.Text.Json;
 
-public class KafkaConsumerService : BackgroundService
+namespace KafkaMessageConsumer.Kafka
 {
-    private readonly ILogger<KafkaConsumerService> _logger;
-    private readonly IConfiguration _config;
-
-    public KafkaConsumerService(ILogger<KafkaConsumerService> logger, IConfiguration configuration)
+    public class KafkaConsumerService : BackgroundService
     {
-        _logger = logger;
-        _config = configuration;
-    }
+        private readonly ILogger<KafkaConsumerService> _logger;
+        private readonly IConfiguration _config;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        var config = new ConsumerConfig
+        public KafkaConsumerService(ILogger<KafkaConsumerService> logger, IConfiguration configuration)
         {
-            BootstrapServers = _config["Kafka:BootstrapServers"],
-            GroupId = _config["Kafka:GroupId"],
-            AutoOffsetReset = AutoOffsetReset.Earliest, 
-            EnableAutoCommit = true
-        };
+            _logger = logger;
+            _config = configuration;
+        }
 
-        using var consumer = new ConsumerBuilder<string, string>(config).Build();
-        consumer.Subscribe("test-topic");
-
-        _logger.LogInformation("Waiting for messages on 'test-topic'...");
-
-        try
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            var config = new ConsumerConfig
             {
-                // Long polling
-                var result = consumer.Consume(stoppingToken);
+                BootstrapServers = _config["Kafka:BootstrapServers"],
+                GroupId = _config["Kafka:GroupId"],
+                AutoOffsetReset = AutoOffsetReset.Latest,
+                EnableAutoCommit = true
+            };
 
-                if (result != null)
+            using var consumer = new ConsumerBuilder<string, string>(config).Build();
+            consumer.Subscribe(_config.GetSection("Kafka:Topic").Value);
+
+            _logger.LogInformation("Waiting for messages on 'test-topic'...");
+
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    ProcessMessage(result);
+                    // Long polling
+                    var result = consumer.Consume(stoppingToken);
+
+                    if (result != null)
+                    {
+                        ProcessMessage(result);
+                    }
                 }
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Normal shutdown
-        }
-        finally
-        {
-            consumer.Close(); // Ensures the group knows this consumer is leaving
-        }
-    }
-
-    private void ProcessMessage(ConsumeResult<string, string> result)
-    {
-        string displayBody;
-        try
-        {
-            // Attempt to Pretty-Print JSON
-            using var doc = JsonDocument.Parse(result.Message.Value);
-            displayBody = JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
-        }
-        catch
-        {
-            // Fallback for plain text (like your "Hello" test)
-            displayBody = result.Message.Value;
+            catch (OperationCanceledException)
+            {
+                // Shutdown
+            }
+            finally
+            {
+                consumer.Close(); 
+            }
         }
 
-        _logger.LogInformation("\n[MESSAGE RECEIVED]\nKey: {Key}\nPartition: {Partition}\nOffset: {Offset}\nPayload:\n{Payload}",
-            result.Message.Key ?? "NULL", result.Partition.Value, result.Offset.Value, displayBody);
+        private void ProcessMessage(ConsumeResult<string, string> result)
+        {
+            string displayBody;
+            try
+            {
+                using var doc = JsonDocument.Parse(result.Message.Value);
+                displayBody = JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+            }
+            catch
+            {
+                displayBody = result.Message.Value;
+            }
+
+            _logger.LogInformation("\n[MESSAGE RECEIVED]\nKey: {Key}\nPartition: {Partition}\nOffset: {Offset}\nPayload:\n{Payload}",
+                result.Message.Key ?? "NULL", result.Partition.Value, result.Offset.Value, displayBody);
+        }
     }
 }

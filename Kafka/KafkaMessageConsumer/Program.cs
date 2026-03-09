@@ -1,3 +1,5 @@
+using KafkaMessageConsumer.Kafka;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services

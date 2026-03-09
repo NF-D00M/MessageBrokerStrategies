@@ -1,10 +1,10 @@
 # MessageBrokerStrategies Performance Testing
 
-This project is designed to evaluate and compare the performance of two popular message broker solutions: **RabbitMQ** and **Kafka**. The goal is to provide insights into their throughput, latency, and reliability under various workloads, helping teams select the most suitable broker for their distributed systems.
+This project is designed to evaluate and compare the performance of three popular message broker solutions: **RabbitMQ**, **Kafka**, and **AWS SNS/SQS**. The goal is to provide insights into their throughput, latency, and reliability under various workloads, helping teams select the most suitable broker for their distributed systems.
 
 ## Project Purpose
 
-- Benchmark and analyze the performance characteristics of RabbitMQ and Kafka.
+- Benchmark and analyze the performance characteristics of RabbitMQ, Kafka, and AWS SNS/SQS.
 - Demonstrate integration strategies for each broker within .NET 9 applications.
 - Highlight the strengths and trade-offs of each solution.
 
@@ -32,9 +32,21 @@ This project is designed to evaluate and compare the performance of two popular 
 **Protocol Used:**  
 - **Kafka’s native protocol (TCP-based, optimized for streaming and partitioned data)**
 
+### AWS SNS/SQS
+
+**Advantages:**
+- Fully managed, serverless messaging with high availability and durability.
+- SNS provides pub/sub messaging, SQS provides queue-based decoupling and reliable delivery.
+- Scales automatically, integrates natively with other AWS services.
+- No infrastructure management required; pay-as-you-go pricing.
+- Suitable for cloud-native, distributed, and event-driven architectures.
+
+**Protocol Used:**
+- **HTTPS (SNS/SQS APIs), AWS SDKs**
+
 ---
 
-## When to Prefer RabbitMQ or Kafka
+## When to Prefer RabbitMQ, Kafka, or AWS SNS/SQS
 
 **RabbitMQ** is ideal when you need:
 - Flexible routing and message patterns (direct, topic, fanout, headers)
@@ -48,7 +60,13 @@ This project is designed to evaluate and compare the performance of two popular 
 - Built-in message replay and long-term storage
 - Distributed, fault-tolerant architecture for parallel processing
 
-Choose RabbitMQ for traditional messaging scenarios and complex routing. Choose Kafka for scalable event streaming and analytics.
+**AWS SNS/SQS** is suitable when you need:
+- Fully managed messaging with minimal operational overhead
+- Seamless integration with AWS services and automatic scaling
+- Pub/sub and queue-based messaging in a serverless architecture
+- High availability, durability, and security without managing infrastructure
+
+Choose RabbitMQ for traditional messaging scenarios and complex routing. Choose Kafka for scalable event streaming and analytics. Choose AWS SNS/SQS for cloud-native, serverless applications with integrated AWS services.
 
 ---
 

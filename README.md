@@ -1,4 +1,4 @@
-# MessageBrokerStrategies Performance Testing
+# MessageBrokerStrategies 
 
 This project is designed to evaluate and compare the performance of three popular message broker solutions: **RabbitMQ**, **Kafka**, and **AWS SNS/SQS**. The goal is to provide insights into their throughput, latency, and reliability under various workloads, helping teams select the most suitable broker for their distributed systems.
 
@@ -30,7 +30,7 @@ This project is designed to evaluate and compare the performance of three popula
 - Guarantees message durability and supports replaying messages.
 
 **Protocol Used:**  
-- **Kafka’s native protocol (TCP-based, optimized for streaming and partitioned data)**
+- **Kafkaâ€™s native protocol (TCP-based, optimized for streaming and partitioned data)**
 
 ### AWS SNS/SQS
 
